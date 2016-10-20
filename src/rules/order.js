@@ -7,53 +7,54 @@ const defaultGroups = ['builtin', 'external', 'parent', 'sibling', 'index']
 
 // REPORTING
 
-function reverse(array) {
-  return array.map(function (v) {
-    return {
-      name: v.name,
-      rank: -v.rank,
-      node: v.node,
-    }
-  }).reverse()
-}
-
-function findOutOfOrder(imported) {
+function findOutOfOrder(imported, comparator) {
   if (imported.length === 0) {
     return []
   }
   let maxSeenRankNode = imported[0]
   return imported.filter(function (importedModule) {
-    const res = importedModule.rank < maxSeenRankNode.rank
-    if (maxSeenRankNode.rank < importedModule.rank) {
+    const res = comparator(importedModule, maxSeenRankNode)
+    if (comparator(maxSeenRankNode, importedModule)) {
       maxSeenRankNode = importedModule
     }
     return res
   })
 }
 
-function reportOutOfOrder(context, imported, outOfOrder, order) {
-  outOfOrder.forEach(function (imp) {
-    const found = imported.find(function hasHigherRank(importedItem) {
-      return importedItem.rank > imp.rank
-    })
+function reportOutOfOrder(context, sortedImports, outOfOrder, order, comparator) {
+  // Pass in imports pre-sorted to ensure `found` is correct position
+  for (let imp of outOfOrder) {
+    const found = sortedImports.find(importedItem => comparator(importedItem, imp))
+
     context.report(imp.node, '`' + imp.name + '` import should occur ' + order +
       ' import of `' + found.name + '`')
-  })
+  }
 }
 
-function makeOutOfOrderReport(context, imported) {
-  const outOfOrder = findOutOfOrder(imported)
-  if (!outOfOrder.length) {
+function makeOutOfOrderReport(context, imported, forwardSortComparator, reverseSortComparator) {
+  const outOfOrder = findOutOfOrder(imported, reverseSortComparator)
+  if (outOfOrder.length === 0) {
     return
   }
   // There are things to report. Try to minimize the number of reported errors.
-  const reversedImported = reverse(imported)
-  const reversedOrder = findOutOfOrder(reversedImported)
+  const reversedImported = [...imported].reverse()
+  const reversedOrder = findOutOfOrder(reversedImported, forwardSortComparator)
+  const sortedImports = [...imported].sort(forwardSortComparator)
   if (reversedOrder.length < outOfOrder.length) {
-    reportOutOfOrder(context, reversedImported, reversedOrder, 'after')
-    return
+    reportOutOfOrder(context,
+      sortedImports.reverse(),
+      reversedOrder,
+      'after',
+      reverseSortComparator
+    )
+  } else {
+    reportOutOfOrder(context,
+      sortedImports,
+      outOfOrder,
+      'before',
+      forwardSortComparator
+    )
   }
-  reportOutOfOrder(context, imported, outOfOrder, 'before')
 }
 
 // DETECTING
@@ -166,6 +167,9 @@ module.exports = {
               'never',
             ],
           },
+          'sort': {
+            enum: [ 'ignore', 'alphabetical' ],
+          },
         },
         additionalProperties: false,
       },
@@ -197,6 +201,20 @@ module.exports = {
       level--
     }
 
+    function determineComparators(alphabetize) {
+      let forwardSortComparator, reverseSortComparator
+      if (alphabetize) {
+        forwardSortComparator = (a, b) => a.rank > b.rank ||
+          (a.rank === b.rank && a.name > b.name)
+        reverseSortComparator = (a, b) => a.rank < b.rank ||
+          (a.rank === b.rank && a.name < b.name)
+      } else {
+        forwardSortComparator = (a, b) => a.rank > b.rank
+        reverseSortComparator = (a, b) => a.rank < b.rank
+      }
+      return [forwardSortComparator, reverseSortComparator]
+    }
+
     return {
       ImportDeclaration: function handleImports(node) {
         if (node.specifiers.length) { // Ignoring unassigned imports
@@ -212,7 +230,9 @@ module.exports = {
         registerNode(context, node, name, 'require', ranks, imported)
       },
       'Program:exit': function reportAndReset() {
-        makeOutOfOrderReport(context, imported)
+        const alphabetize = (options['sort'] === 'alphabetical')
+        let [forwardSortComparator, reverseSortComparator] = determineComparators(alphabetize)
+        makeOutOfOrderReport(context, imported, forwardSortComparator, reverseSortComparator)
 
         if (newlinesBetweenImports !== 'ignore') {
           makeNewlinesBetweenReport(context, imported, newlinesBetweenImports)

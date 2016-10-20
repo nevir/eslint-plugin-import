@@ -162,6 +162,42 @@ import index from './';
 import sibling from './foo';
 ```
 
+### `sort: [ignore|alphabetical]`:
+
+Enforces alphabetical sorting within import groups:
+
+- If set to `ignore`, no errors related to order within import groups will be reported (default).
+- If set to `alphabetical`, imports within a group must be alphabetized. Imports across groups will not be compared.
+
+With the default group setting, the following will be invalid:
+
+```js
+/* eslint import/order: ["error", {"sort": "alphabetical"}] */
+import path from 'path';
+import fs from 'fs';
+import index from './';
+import sibling from './foo';
+```
+
+while this will be valid:
+
+```js
+/* eslint import/order: ["error", {"sort": "alphabetical"}] */
+import fs from 'fs';
+import path from 'path';
+import index from './';
+import sibling from './foo';
+```
+
+```js
+/* eslint import/order: ["error", {"sort": "ignore"}] */
+/* eslint import/order: ["error"] */
+import path from 'path';
+import fs from 'fs';
+import index from './';
+import sibling from './foo';
+```
+
 ## Related
 
 - [`import/external-module-folders`] setting
