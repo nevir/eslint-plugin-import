@@ -34,6 +34,7 @@ This change log adheres to standards from [Keep a CHANGELOG](http://keepachangel
 - Fix crash when using [`newline-after-import`] with decorators ([#592])
 - Properly report [`newline-after-import`] when next line is a decorator
 - Fixed documentation for the default values for the [`order`] rule ([#601])
+- [`order`] allows secondary alphabetical sort ([#389])
 
 ## [2.0.1] - 2016-10-06
 ### Fixed

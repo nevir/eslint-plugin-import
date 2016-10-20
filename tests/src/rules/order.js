@@ -400,7 +400,48 @@ ruleTester.run('order', rule, {
         {
           'newlines-between': 'always-and-inside-groups',
         },
-      ],
+      ]
+    }),
+    // Alphabetical order
+    test({
+      code: `
+        import fs from 'fs';
+        import path from 'path';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+    }),
+    // Alphabetical order with duplicate import
+    test({
+      code: `
+        import fs from 'fs';
+        import fs from 'fs';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+    }),
+    // Alphabetical order with multiple groups
+    test({
+      code: `
+        import fs from 'fs';
+        import path from 'path';
+        import async from 'async';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+    }),
+    // Ignore alphabetical order
+    test({
+      code: `
+        import path from 'path';
+        import fs from 'fs';
+      `,
+      options: [{ 'sort': 'ignore' }],
+    }),
+    // Ignore alphabetical order across groups
+    test({
+      code: `
+        import fs from 'fs';
+        import async from 'async';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
     }),
   ],
   invalid: [
@@ -482,7 +523,7 @@ ruleTester.run('order', rule, {
         message: '`async` import should occur before import of `./sibling`',
       }, {
         ruleId: 'order',
-        message: '`fs` import should occur before import of `./sibling`',
+        message: '`fs` import should occur before import of `async`',
       }],
     }),
     // Uses 'after' wording if it creates less errors
@@ -783,6 +824,93 @@ ruleTester.run('order', rule, {
         {
           line: 2,
           message: 'There should be at least one empty line between import groups',
+        },
+      ],
+    }),
+    // Bad alphabetical order
+    test({
+      code: `
+        import path from 'path';
+        import fs from 'fs';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`fs` import should occur before import of `path`',
+        },
+      ],
+    }),
+    // Bad alphabetical order with duplicate import
+    test({
+      code: `
+        import fs from 'fs';
+        import path from 'path';
+        import fs from 'fs';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`fs` import should occur before import of `path`',
+        },
+      ],
+    }),
+    // Bad alphabetical order reverse
+    test({
+      code: `
+        import path from 'path';
+        import index from './';
+        import fs from 'fs';
+      `,
+      options: [
+        {
+          groups: [
+            ['builtin', 'index'],
+            ['sibling'],
+            ['parent', 'external'],
+          ],
+          'sort': 'alphabetical',
+        }
+      ],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`path` import should occur after import of `fs`',
+        },
+      ],
+    }),
+    // Good alphabetical order with incorrect group order
+    test({
+      code: `
+        import async from 'async'
+        import fs from 'fs';
+        import path from 'path';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`async` import should occur after import of `path`',
+        },
+      ],
+    }),
+    // Bad alphabetical order with incorrect group order
+    test({
+      code: `
+        import async from 'async'
+        import path from 'path';
+        import fs from 'fs';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`path` import should occur before import of `async`',
+        },
+        {
+          ruleId: 'order',
+          message: '`fs` import should occur before import of `path`',
         },
       ],
     }),
