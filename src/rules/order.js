@@ -231,7 +231,7 @@ module.exports = {
       },
       'Program:exit': function reportAndReset() {
         const alphabetize = (options['sort'] === 'alphabetical')
-        let [forwardSortComparator, reverseSortComparator] = determineComparators(alphabetize)
+        const [forwardSortComparator, reverseSortComparator] = determineComparators(alphabetize)
         makeOutOfOrderReport(context, imported, forwardSortComparator, reverseSortComparator)
 
         if (newlinesBetweenImports !== 'ignore') {
