@@ -191,7 +191,6 @@ import sibling from './foo';
 
 ```js
 /* eslint import/order: ["error", {"sort": "ignore"}] */
-/* eslint import/order: ["error"] */
 import path from 'path';
 import fs from 'fs';
 import index from './';
