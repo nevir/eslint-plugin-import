@@ -410,6 +410,15 @@ ruleTester.run('order', rule, {
       `,
       options: [{ 'sort': 'alphabetical' }],
     }),
+    // Alphabetical order with mixed cases
+    test({
+      code: `
+        import bar from 'bar';
+        import baz from 'Baz';
+        import foo from 'Foo';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+    }),
     // Alphabetical order with duplicate import
     test({
       code: `
@@ -838,6 +847,35 @@ ruleTester.run('order', rule, {
         {
           ruleId: 'order',
           message: '`fs` import should occur before import of `path`',
+        },
+      ],
+    }),
+    // Bad alphabetical order with mixed cases
+    test({
+      code: `
+        import baz from 'Baz';
+        import foo from 'Foo';
+        import bar from 'bar';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`bar` import should occur before import of `Baz`',
+        },
+      ],
+    }),
+    // Capitalized import is not recognized as built-in, overrides alphabetical
+    test({
+      code: `
+        import module from 'Module';
+        import path from 'path';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`path` import should occur before import of `Module`',
         },
       ],
     }),

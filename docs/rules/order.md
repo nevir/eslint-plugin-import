@@ -167,7 +167,7 @@ import sibling from './foo';
 Enforces alphabetical sorting within import groups:
 
 - If set to `ignore`, no errors related to order within import groups will be reported (default).
-- If set to `alphabetical`, imports within a group must be alphabetized. Imports across groups will not be compared.
+- If set to `alphabetical`, imports within a group must be alphabetized. Imports across groups will not be compared. Alphabetical sort ignores capitalization.
 
 With the default group setting, the following will be invalid:
 
