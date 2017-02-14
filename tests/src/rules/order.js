@@ -419,6 +419,15 @@ ruleTester.run('order', rule, {
       `,
       options: [{ 'sort': 'alphabetical' }],
     }),
+    // Alphabetical order with unassigned imports
+    test({
+      code: `
+        var bar = require('bar');
+        require('Baz');
+        var foo = require('Foo');
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+    }),
     // Alphabetical order with duplicate import
     test({
       code: `
@@ -856,6 +865,21 @@ ruleTester.run('order', rule, {
         import baz from 'Baz';
         import foo from 'Foo';
         import bar from 'bar';
+      `,
+      options: [{ 'sort': 'alphabetical' }],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`bar` import should occur before import of `Baz`',
+        },
+      ],
+    }),
+    // Bad alphabetical order with unassigned imports
+    test({
+      code: `
+        require('Foo');
+        var baz = require('Baz');
+        var bar = require('bar');
       `,
       options: [{ 'sort': 'alphabetical' }],
       errors: [
