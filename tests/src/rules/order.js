@@ -914,5 +914,20 @@ ruleTester.run('order', rule, {
         },
       ],
     }),
+    // Bad alphabetical order ignored with incorrect group order
+    test({
+      code: `
+        import async from 'async'
+        import path from 'path';
+        import fs from 'fs';
+      `,
+      options: [{ 'sort': 'ignore' }],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`async` import should occur after import of `fs`',
+        },
+      ],
+    }),
   ],
 })
