@@ -453,6 +453,13 @@ ruleTester.run('order', rule, {
       `,
       options: [{ 'sort': 'ignore' }],
     }),
+    // Ignore alphabetical order should be default
+    test({
+      code: `
+        import path from 'path';
+        import fs from 'fs';
+      `,
+    }),
     // Ignore alphabetical order across groups
     test({
       code: `
@@ -460,6 +467,146 @@ ruleTester.run('order', rule, {
         import async from 'async';
       `,
       options: [{ 'sort': 'alphabetical' }],
+    }),
+    // Enforce alphabetical order with newlines-between: 'always'
+    test({
+      code: `
+        var fs = require('fs');
+        var path = require('path');
+
+        var async = require('async');
+        var react = require('react');
+
+        var barParent = require('../bar');
+        var fooParent = require('../foo');
+
+        var barSibling = require('./bar');
+        var fooSibling = require('./foo');
+
+        var index = require('./');
+      `,
+      options: [
+        {
+          'newlines-between': 'always',
+          'sort': 'alphabetical',
+        },
+      ],
+    }),
+    // Ignore alphabetical order with newlines-between: 'always'
+    test({
+      code: `
+        var path = require('path');
+        var fs = require('fs');
+
+        var react = require('react');
+        var async = require('async');
+
+        var fooParent = require('../foo');
+        var barParent = require('../bar');
+
+        var fooSibling = require('./foo');
+        var barSibling = require('./bar');
+
+        var index = require('./');
+      `,
+      options: [
+        {
+          'newlines-between': 'always',
+          'sort': 'ignore',
+        },
+      ],
+    }),
+    // Enforce alphabetical with newlines-between: 'never'
+    test({
+      code: `
+        var fs = require('fs');
+        var path = require('path');
+        var async = require('async');
+        var react = require('react');
+        var barParent = require('../bar');
+        var fooParent = require('../foo');
+        var barSibling = require('./bar');
+        var fooSibling = require('./foo');
+        var index = require('./');
+      `,
+      options: [
+        {
+          'newlines-between': 'never',
+          'sort': 'alphabetical',
+        },
+      ],
+    }),
+    // Ignore alphabetical with newlines-between: 'never'
+    test({
+      code: `
+      var path = require('path');
+        var fs = require('fs');
+        var react = require('react');
+        var async = require('async');
+        var fooParent = require('../foo');
+        var barParent = require('../bar');
+        var fooSibling = require('./foo');
+        var barSibling = require('./bar');
+        var index = require('./');
+      `,
+      options: [
+        {
+          'newlines-between': 'never',
+          'sort': 'ignore',
+        },
+      ],
+    }),
+    // Enforce alphabetical order with newlines-between: 'always-and-inside-groups'
+    test({
+      code: `
+        var fs = require('fs');
+        var path = require('path');
+
+        var util = require('util');
+
+        var async = require('async');
+        var react = require('react');
+
+        var barParent = require('../bar');
+        var fooParent = require('../foo');
+
+        var barSibling = require('./bar');
+        var fooSibling = require('./foo');
+
+        var foobarSibling = require('./foobar');
+      `,
+      options: [
+        {
+          'newlines-between': 'always-and-inside-groups',
+          'sort': 'alphabetical',
+        },
+      ]
+    }),
+    // Ignore alphabetical order with newlines-between: 'always-and-inside-groups'
+    test({
+      code: `
+        var path = require('path');
+        var util = require('util');
+
+        var fs = require('fs');
+
+        var react = require('react');
+        var async = require('async');
+
+        var fooParent = require('../foo');
+        var barParent = require('../bar');
+
+        var foobarSibling = require('./foobar');
+
+        var fooSibling = require('./foo');
+        var barSibling = require('./bar');
+      `,
+      options: [
+        {
+          'newlines-between': 'always-and-inside-groups',
+          'sort': 'ignore',
+        },
+      ]
     }),
   ],
   invalid: [
@@ -988,6 +1135,208 @@ ruleTester.run('order', rule, {
         {
           ruleId: 'order',
           message: '`async` import should occur after import of `fs`',
+        },
+      ],
+    }),
+    // Bad alphabetical order with newlines-between: 'always'
+    test({
+      code: `
+        var path = require('path');
+        var fs = require('fs');
+
+        var react = require('react');
+        var async = require('async');
+
+        var fooParent = require('../foo');
+        var barParent = require('../bar');
+
+        var fooSibling = require('./foo');
+        var barSibling = require('./bar');
+
+        var index = require('./');
+      `,
+      options: [
+        {
+          'newlines-between': 'always',
+          'sort': 'alphabetical',
+        },
+      ],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`fs` import should occur before import of `path`',
+        },
+        {
+          ruleId: 'order',
+          message: '`async` import should occur before import of `react`',
+        },
+        {
+          ruleId: 'order',
+          message: '`../bar` import should occur before import of `../foo`',
+        },
+        {
+          ruleId: 'order',
+          message: '`./bar` import should occur before import of `./foo`',
+        },
+      ],
+    }),
+    // Bad alphabetical order with newlines-between: 'always' and missing newline
+    test({
+      code: `
+        var fs = require('fs');
+        var react = require('react');
+        var async = require('async');
+      `,
+      options: [
+        {
+          'newlines-between': 'always',
+          'sort': 'alphabetical',
+        },
+      ],
+      errors: [
+        {
+          ruleId: 'order',
+          message: 'There should be at least one empty line between import groups',
+        },
+        {
+          ruleId: 'order',
+          message: '`async` import should occur before import of `react`',
+        },
+      ],
+    }),
+    // Enforce alphabetical order with newlines-between: 'never'
+    test({
+      code: `
+        var path = require('path');
+        var fs = require('fs');
+        var react = require('react');
+        var async = require('async');
+        var fooParent = require('../foo');
+        var barParent = require('../bar');
+        var fooSibling = require('./foo');
+        var barSibling = require('./bar');
+        var index = require('./');
+      `,
+      options: [
+        {
+          'newlines-between': 'never',
+          'sort': 'alphabetical',
+        },
+      ],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`fs` import should occur before import of `path`',
+        },
+        {
+          ruleId: 'order',
+          message: '`async` import should occur before import of `react`',
+        },
+        {
+          ruleId: 'order',
+          message: '`../bar` import should occur before import of `../foo`',
+        },
+        {
+          ruleId: 'order',
+          message: '`./bar` import should occur before import of `./foo`',
+        },
+      ],
+    }),
+    // Bad alphabetical order with newlines-between: 'never' and extra newline
+    test({
+      code: `
+        var fs = require('fs');
+
+        var react = require('react');
+        var async = require('async');
+      `,
+      options: [
+        {
+          'newlines-between': 'never',
+          'sort': 'alphabetical',
+        },
+      ],
+      errors: [
+        {
+          ruleId: 'order',
+          message: 'There should be no empty line between import groups',
+        },
+        {
+          ruleId: 'order',
+          message: '`async` import should occur before import of `react`',
+        },
+      ],
+    }),
+    // Enforce alphabetical order with newlines-between: 'always-and-inside-groups'
+    test({
+      code: `
+        var path = require('path');
+        var util = require('util');
+
+        var fs = require('fs');
+
+        var react = require('react');
+        var async = require('async');
+
+        var fooParent = require('../foo');
+        var barParent = require('../bar');
+
+        var foobarSibling = require('./foobar');
+
+        var fooSibling = require('./foo');
+        var barSibling = require('./bar');
+      `,
+      options: [
+        {
+          'newlines-between': 'always-and-inside-groups',
+          'sort': 'alphabetical',
+        },
+      ],
+      errors: [
+        {
+          ruleId: 'order',
+          message: '`fs` import should occur before import of `path`',
+        },
+        {
+          ruleId: 'order',
+          message: '`async` import should occur before import of `react`',
+        },
+        {
+          ruleId: 'order',
+          message: '`../bar` import should occur before import of `../foo`',
+        },
+        {
+          ruleId: 'order',
+          message: '`./foo` import should occur before import of `./foobar`',
+        },
+        {
+          ruleId: 'order',
+          message: '`./bar` import should occur before import of `./foo`',
+        },
+      ],
+    }),
+    // Bad alphabetical order with newlines-between: 'always-and-inside-groups' and missing newline
+    test({
+      code: `
+        var fs = require('fs');
+        var react = require('react');
+
+        var async = require('async');
+      `,
+      options: [
+        {
+          'newlines-between': 'always-and-inside-groups',
+          'sort': 'alphabetical',
+        },
+      ],
+      errors: [
+        {
+          ruleId: 'order',
+          message: 'There should be at least one empty line between import groups',
+        },
+        {
+          ruleId: 'order',
+          message: '`async` import should occur before import of `react`',
         },
       ],
     }),
