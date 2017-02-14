@@ -205,9 +205,9 @@ module.exports = {
       let forwardSortComparator, reverseSortComparator
       if (alphabetize) {
         forwardSortComparator = (a, b) => a.rank > b.rank ||
-          (a.rank === b.rank && a.name > b.name)
+          (a.rank === b.rank && (a.name.toLowerCase() > b.name.toLowerCase()))
         reverseSortComparator = (a, b) => a.rank < b.rank ||
-          (a.rank === b.rank && a.name < b.name)
+          (a.rank === b.rank && (a.name.toLowerCase() < b.name.toLowerCase()))
       } else {
         forwardSortComparator = (a, b) => a.rank > b.rank
         reverseSortComparator = (a, b) => a.rank < b.rank
