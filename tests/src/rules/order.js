@@ -402,6 +402,52 @@ ruleTester.run('order', rule, {
         },
       ],
     }),
+    // Interleaved imports
+    test({
+      code: `
+        import b from 'b';
+
+        console.log('a thing');
+
+        import a from 'a';
+      `,
+      options: [
+        {
+          'newlines-between': 'always',
+        },
+      ],
+    }),
+    // Interleaved requires
+    test({
+      code: `
+        var b = require('b');
+
+        console.log('a thing');
+
+        var a = require('a');
+      `,
+      options: [
+        {
+          'newlines-between': 'always',
+        },
+      ],
+    }),
+    // Interleaved requires & imports
+    test({
+      code: `
+        import c from 'c';
+        var b = require('c');
+
+        console.log('a thing');
+
+        var a = require('a');
+      `,
+      options: [
+        {
+          'newlines-between': 'always',
+        },
+      ],
+    }),
   ],
   invalid: [
     // builtin before external module (require)
