@@ -431,8 +431,8 @@ ruleTester.run('order', rule, {
     // Alphabetical order with duplicate import
     test({
       code: `
-        import fs from 'fs';
-        import fs from 'fs';
+        import fs1 from 'fs';
+        import fs2 from 'fs';
       `,
       options: [{ 'sort': 'alphabetical' }],
     }),
@@ -1053,9 +1053,9 @@ ruleTester.run('order', rule, {
     // Bad alphabetical order with duplicate import
     test({
       code: `
-        import fs from 'fs';
+        import fs1 from 'fs';
         import path from 'path';
-        import fs from 'fs';
+        import fs2 from 'fs';
       `,
       options: [{ 'sort': 'alphabetical' }],
       errors: [
