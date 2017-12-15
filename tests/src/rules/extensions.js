@@ -35,9 +35,9 @@ ruleTester.run('extensions', rule, {
 
     test({
       code: [
-        'import lib from "./bar"',
-        'import lib from "./bar.json"',
-        'import lib from "./bar.hbs"',
+        'import bar from "./bar"',
+        'import barjson from "./bar.json"',
+        'import barhbs from "./bar.hbs"',
       ].join('\n'),
       options: [ 'always', { js: 'never', jsx: 'never' } ],
       settings: { 'import/resolve': { 'extensions': [ '.js', '.jsx', '.json', '.hbs' ] } },
@@ -45,8 +45,8 @@ ruleTester.run('extensions', rule, {
 
     test({
       code: [
-        'import lib from "./bar.js"',
-        'import lib from "./package"',
+        'import bar from "./bar.js"',
+        'import pack from "./package"',
       ].join('\n'),
       options: [ 'never', { js: 'always', json: 'never' } ],
       settings: { 'import/resolve': { 'extensions': [ '.js', '.json' ] } },
@@ -58,6 +58,37 @@ ruleTester.run('extensions', rule, {
     test({ code: 'import path from "path"', options: [ 'always' ] }),
     test({ code: 'import thing from "./fake-file.js"', options: [ 'always' ] }),
     test({ code: 'import thing from "non-package"', options: [ 'never' ] }),
+
+
+    test({
+      code: `
+        import foo from './foo.js'
+        import bar from './bar.json'
+        import Component from './Component'
+        import express from 'express'
+      `,
+      options: [ 'ignorePackages' ],
+    }),
+
+    test({
+      code: `
+        import foo from './foo.js'
+        import bar from './bar.json'
+        import Component from './Component.jsx'
+        import express from 'express'
+      `,
+      options: [ 'always', {ignorePackages: true} ],
+    }),
+
+    test({
+      code: `
+        import foo from './foo'
+        import bar from './bar'
+        import Component from './Component'
+        import express from 'express'
+      `,
+      options: [ 'never', {ignorePackages: true} ],
+    }),
 
   ],
 
@@ -145,9 +176,9 @@ ruleTester.run('extensions', rule, {
 
     test({
       code: [
-        'import lib from "./bar.js"',
-        'import lib from "./bar.json"',
-        'import lib from "./bar"',
+        'import barjs from "./bar.js"',
+        'import barjson from "./bar.json"',
+        'import barnone from "./bar"',
       ].join('\n'),
       options: [ 'always', { json: 'always', js: 'never', jsx: 'never' } ],
       settings: { 'import/resolve': { 'extensions': [ '.js', '.jsx', '.json' ] } },
@@ -155,16 +186,16 @@ ruleTester.run('extensions', rule, {
         {
             message: 'Unexpected use of file extension "js" for "./bar.js"',
             line: 1,
-            column: 17,
+            column: 19,
         },
       ],
     }),
 
     test({
       code: [
-        'import lib from "./bar.js"',
-        'import lib from "./bar.json"',
-        'import lib from "./bar"',
+        'import barjs from "./bar.js"',
+        'import barjson from "./bar.json"',
+        'import barnone from "./bar"',
       ].join('\n'),
       options: [ 'never', { json: 'always', js: 'never', jsx: 'never' } ],
       settings: { 'import/resolve': { 'extensions': [ '.js', '.jsx', '.json' ] } },
@@ -172,7 +203,7 @@ ruleTester.run('extensions', rule, {
         {
             message: 'Unexpected use of file extension "js" for "./bar.js"',
             line: 1,
-            column: 17,
+            column: 19,
         },
       ],
     }),
@@ -199,6 +230,50 @@ ruleTester.run('extensions', rule, {
             column: 19,
         },
       ],
+    }),
+
+
+    test({
+      code: `
+        import foo from './foo.js'
+        import bar from './bar.json'
+        import Component from './Component'
+        import baz from 'foo/baz'
+        import express from 'express'
+      `,
+      options: [ 'always', {ignorePackages: true} ],
+      errors: [
+        {
+          message: 'Missing file extension for "./Component"',
+          line: 4,
+          column: 31,
+        }, {
+          message: 'Missing file extension for "foo/baz"',
+          line: 5,
+          column: 25,
+        },
+      ],
+    }),
+
+    test({
+      code: `
+        import foo from './foo.js'
+        import bar from './bar.json'
+        import Component from './Component.jsx'
+        import express from 'express'
+      `,
+      errors: [
+        {
+          message: 'Unexpected use of file extension "js" for "./foo.js"',
+          line: 2,
+          column: 25,
+        }, {
+          message: 'Unexpected use of file extension "jsx" for "./Component.jsx"',
+          line: 4,
+          column: 31,
+        },
+      ],
+      options: [ 'never', {ignorePackages: true} ],
     }),
 
   ],

@@ -1,4 +1,4 @@
-import cond from 'lodash.cond'
+import cond from 'lodash/cond'
 import builtinModules from 'builtin-modules'
 import { join } from 'path'
 
@@ -8,13 +8,23 @@ function constant(value) {
   return () => value
 }
 
-function isAbsolute(name) {
+function baseModule(name) {
+  if (isScoped(name)) {
+    const [scope, pkg] = name.split('/')
+    return `${scope}/${pkg}`
+  }
+  const [pkg] = name.split('/')
+  return pkg
+}
+
+export function isAbsolute(name) {
   return name.indexOf('/') === 0
 }
 
 export function isBuiltIn(name, settings) {
+  const base = baseModule(name)
   const extras = (settings && settings['import/core-modules']) || []
-  return builtinModules.indexOf(name) !== -1 || extras.indexOf(name) > -1
+  return builtinModules.indexOf(base) !== -1 || extras.indexOf(base) > -1
 }
 
 function isExternalPath(path, name, settings) {
@@ -27,9 +37,19 @@ function isExternalModule(name, settings, path) {
   return externalModuleRegExp.test(name) && isExternalPath(path, name, settings)
 }
 
-const scopedRegExp = /^@\w+\/\w+/
+const externalModuleMainRegExp = /^[\w]((?!\/).)*$/
+export function isExternalModuleMain(name, settings, path) {
+  return externalModuleMainRegExp.test(name) && isExternalPath(path, name, settings)
+}
+
+const scopedRegExp = /^@[^/]+\/[^/]+/
 function isScoped(name) {
   return scopedRegExp.test(name)
+}
+
+const scopedMainRegExp = /^@[^/]+\/?[^/]+$/
+export function isScopedMain(name) {
+  return scopedMainRegExp.test(name)
 }
 
 function isInternalModule(name, settings, path) {

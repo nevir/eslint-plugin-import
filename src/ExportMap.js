@@ -151,8 +151,14 @@ export default class ExportMap {
       callback.call(thisArg, reexported && reexported.get(reexports.local), name, this)
     })
 
-    this.dependencies.forEach(dep => dep().forEach((v, n) =>
-      n !== 'default' && callback.call(thisArg, v, n, this)))
+    this.dependencies.forEach(dep => {
+      const d = dep()
+      // CJS / ignored dependencies won't exist (#717)
+      if (d == null) return
+
+      d.forEach((v, n) =>
+        n !== 'default' && callback.call(thisArg, v, n, this))
+    })
   }
 
   // todo: keys, values, entries?
@@ -324,17 +330,19 @@ ExportMap.parse = function (path, content, context) {
   })
 
   // attempt to collect module doc
-  ast.comments.some(c => {
-    if (c.type !== 'Block') return false
-    try {
-      const doc = doctrine.parse(c.value, { unwrap: true })
-      if (doc.tags.some(t => t.title === 'module')) {
-        m.doc = doc
-        return true
-      }
-    } catch (err) { /* ignore */ }
-    return false
-  })
+  if (ast.comments) {
+    ast.comments.some(c => {
+      if (c.type !== 'Block') return false
+      try {
+        const doc = doctrine.parse(c.value, { unwrap: true })
+        if (doc.tags.some(t => t.title === 'module')) {
+          m.doc = doc
+          return true
+        }
+      } catch (err) { /* ignore */ }
+      return false
+    })
+  }
 
   const namespaces = new Map()
 
@@ -400,6 +408,7 @@ ExportMap.parse = function (path, content, context) {
           case 'FunctionDeclaration':
           case 'ClassDeclaration':
           case 'TypeAlias': // flowtype with babel-eslint parser
+          case 'InterfaceDeclaration':
             m.namespace.set(n.declaration.id.name, captureDoc(docStyleParsers, n))
             break
           case 'VariableDeclaration':
